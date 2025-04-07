@@ -11,7 +11,8 @@
 
 %% API
 -export([create_monitor/0, add_station/3, add_value/5, remove_value/4,
-  get_one_value/4, get_station_mean/3, get_daily_mean/3, get_daily_min_and_max/3]).
+  get_one_value/4, get_station_mean/3, get_daily_mean/3, get_daily_min_and_max/3,
+  get_station_min/3]).
 
 create_monitor() -> [].
 
@@ -77,6 +78,25 @@ get_one_value(Station, Time, Type, Monitor) ->
           case proplists:get_value(Time, Values) of
             undefined -> {error, "Value at given time does not exist"};
             Value -> Value
+          end
+      end
+  end.
+
+get_station_min(Station, Type, Monitor) ->
+  case get_station(Station, Monitor) of
+    {error, Message} ->
+      {error, Message};
+    {_, _, Readings} ->
+      case proplists:get_value(Type, Readings) of
+        undefined ->
+          {error, "Value of given type does not exist"};
+        Values ->
+          case Values of
+            [] ->
+              {error, "Zero values for given type"};
+            _ ->
+              MappedValues = lists:map(fun ({_, V}) -> V end, Values),
+              lists:min(MappedValues)
           end
       end
   end.
